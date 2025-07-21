@@ -1,0 +1,140 @@
+def jaccard_similarity(set1, set2):
+    intersection = len(set1 & set2)
+    union = len(set1 | set2)
+    return intersection / union if union > 0 else 0
+
+# PES1: primo modello (dal tuo XML)
+events_1 = {
+    "Receive birth notification", "Confirm identity", "Redirect to municipality of birth",
+    "Process acknowledgment certificate", "Confirm choice of name", "Fill in birth registration form",
+    "Check GBA data", "Search GBA data", "Determine next action", "Create birth certificate",
+    "Informant checks the certificate", "Adjust", "Sign certificate", "Return documents",
+    "Determine GBA municipality", "Update GBA", "Check accuracy", "Correct error",
+    "Send notifications", "Send data", "Send PL", "Finalize message exchange", "Archive documents"
+}
+
+relations_1 = {
+    ("Receive birth notification", "Confirm identity"),
+    ("Confirm identity", "Redirect to municipality of birth"),
+    ("Redirect to municipality of birth", "Process acknowledgment certificate"),
+    ("Process acknowledgment certificate", "Confirm choice of name"),
+    ("Confirm choice of name", "Fill in birth registration form"),
+    ("Fill in birth registration form", "Check GBA data"),
+    ("Check GBA data", "Search GBA data"),
+    ("Search GBA data", "Determine next action"),
+    ("Determine next action", "Create birth certificate"),
+    ("Create birth certificate", "Informant checks the certificate"),
+    ("Informant checks the certificate", "Adjust"),
+    ("Adjust", "Sign certificate"),
+    ("Sign certificate", "Return documents"),
+    ("Return documents", "Determine GBA municipality"),
+    ("Determine GBA municipality", "Update GBA"),
+    ("Update GBA", "Check accuracy"),
+    ("Check accuracy", "Correct error"),
+    ("Correct error", "Send notifications"),
+    ("Send notifications", "Send data"),
+    ("Send data", "Send PL"),
+    ("Send PL", "Finalize message exchange"),
+    ("Finalize message exchange", "Archive documents"),
+}
+
+# PES2: secondo modello (esempio)
+events_2 = {
+    "Send birth certificate", "Create birth certificate", "Sign certificate",
+    "Fill in birth registration form", "Check GBA data", "Send notifications",
+    "Update GBA", "Archive documents"
+}
+
+relations_2 = {
+    ("Fill in birth registration form", "Create birth certificate"),
+    ("Create birth certificate", "Sign certificate"),
+    ("Sign certificate", "Send birth certificate"),
+    ("Send birth certificate", "Send notifications"),
+    ("Send notifications", "Update GBA"),
+    ("Update GBA", "Archive documents"),
+}
+
+# Calcolo Jaccard similarity
+jaccard_events = jaccard_similarity(events_1, events_2)
+jaccard_relations = jaccard_similarity(relations_1, relations_2)
+
+print(f"Jaccard similarity Events: {jaccard_events:.3f}")
+print(f"Jaccard similarity Relations: {jaccard_relations:.3f}")
+
+# Creazione PSP (qui semplicemente unione eventi + relazioni per esempio)
+psp_events = events_1.union(events_2)
+psp_relations = relations_1.union(relations_2)
+
+print("\nPSP Events:")
+print(psp_events)
+print("\nPSP Relations:")
+print(psp_relations)
+
+def precision_recall_f1(gold_set, predicted_set):
+    true_positives = len(gold_set & predicted_set)
+    precision = true_positives / len(predicted_set) if predicted_set else 0
+    recall = true_positives / len(gold_set) if gold_set else 0
+    if precision + recall == 0:
+        f1 = 0
+    else:
+        f1 = 2 * precision * recall / (precision + recall)
+    return precision, recall, f1
+
+# Gold standard (primo modello)
+gold_events = {
+    "Receive birth notification", "Confirm identity", "Redirect to municipality of birth",
+    "Process acknowledgment certificate", "Confirm choice of name", "Fill in birth registration form",
+    "Check GBA data", "Search GBA data", "Determine next action", "Create birth certificate",
+    "Informant checks the certificate", "Adjust", "Sign certificate", "Return documents",
+    "Determine GBA municipality", "Update GBA", "Check accuracy", "Correct error",
+    "Send notifications", "Send data", "Send PL", "Finalize message exchange", "Archive documents"
+}
+
+gold_relations = {
+    ("Receive birth notification", "Confirm identity"),
+    ("Confirm identity", "Redirect to municipality of birth"),
+    ("Redirect to municipality of birth", "Process acknowledgment certificate"),
+    ("Process acknowledgment certificate", "Confirm choice of name"),
+    ("Confirm choice of name", "Fill in birth registration form"),
+    ("Fill in birth registration form", "Check GBA data"),
+    ("Check GBA data", "Search GBA data"),
+    ("Search GBA data", "Determine next action"),
+    ("Determine next action", "Create birth certificate"),
+    ("Create birth certificate", "Informant checks the certificate"),
+    ("Informant checks the certificate", "Adjust"),
+    ("Adjust", "Sign certificate"),
+    ("Sign certificate", "Return documents"),
+    ("Return documents", "Determine GBA municipality"),
+    ("Determine GBA municipality", "Update GBA"),
+    ("Update GBA", "Check accuracy"),
+    ("Check accuracy", "Correct error"),
+    ("Correct error", "Send notifications"),
+    ("Send notifications", "Send data"),
+    ("Send data", "Send PL"),
+    ("Send PL", "Finalize message exchange"),
+    ("Finalize message exchange", "Archive documents"),
+}
+
+# Predetti (secondo modello)
+predicted_events = {
+    "Send birth certificate", "Create birth certificate", "Sign certificate",
+    "Fill in birth registration form", "Check GBA data", "Send notifications",
+    "Update GBA", "Archive documents"
+}
+
+predicted_relations = {
+    ("Fill in birth registration form", "Create birth certificate"),
+    ("Create birth certificate", "Sign certificate"),
+    ("Sign certificate", "Send birth certificate"),
+    ("Send birth certificate", "Send notifications"),
+    ("Send notifications", "Update GBA"),
+    ("Update GBA", "Archive documents"),
+}
+
+# Calcolo per eventi
+prec_e, rec_e, f1_e = precision_recall_f1(gold_events, predicted_events)
+# Calcolo per relazioni
+prec_r, rec_r, f1_r = precision_recall_f1(gold_relations, predicted_relations)
+
+print(f"Events - Precision: {prec_e:.3f}, Recall: {rec_e:.3f}, F1-score: {f1_e:.3f}")
+print(f"Relations - Precision: {prec_r:.3f}, Recall: {rec_r:.3f}, F1-score: {f1_r:.3f}")
