@@ -1,0 +1,53 @@
+from pm4py.objects.petri.importer import importer as pnml_importer
+from pm4py.algo.simulation.playout.petri_net import algorithm as simulator
+
+def extract_tar_from_pnml(pnml_path, no_traces=100):
+    net, initial_marking, final_marking = pnml_importer.apply(pnml_path)
+    log = simulator.apply(net, initial_marking, variant=simulator.Variants.BASIC_PLAYOUT, parameters={"no_traces": no_traces})
+    
+    tar = set()
+    for trace in log:
+        events = [e["concept:name"] for e in trace]
+        for i in range(len(events) - 1):
+            tar.add((events[i], events[i+1]))
+    return tar
+
+def dab_similarity(tar1, tar2):
+    intersection = tar1 & tar2
+    union = tar1 | tar2
+    return len(intersection) / len(union) if union else 1.0
+
+# Percorsi ai tuoi file .pnml
+file1 = "birthCertificate_p31.pnml"
+file2 = "birthCertificate_p32.pnml"
+
+# Estrai TAR sets
+tar1 = extract_tar_from_pnml(file1)
+tar2 = extract_tar_from_pnml(file2)
+
+# Calcola similarità DAB
+similarity = dab_similarity(tar1, tar2)
+
+# Risultato
+print(f"🔁 Transizioni comuni (TAR ∩): {len(tar1 & tar2)}")
+print(f"📊 Transizioni totali (TAR ∪): {len(tar1 | tar2)}")
+print(f"✅ Similarità DAB: {similarity:.3f}")
+def precision_recall_fscore(tar_true, tar_pred):
+    intersection = tar_true & tar_pred
+    true_positives = len(intersection)
+    predicted = len(tar_pred)
+    actual = len(tar_true)
+    
+    precision = true_positives / predicted if predicted else 0
+    recall = true_positives / actual if actual else 0
+    fscore = 2 * precision * recall / (precision + recall) if (precision + recall) else 0
+
+    return precision, recall, fscore
+tar_true = extract_tar_from_pnml("birthCertificate_p247.pnml")
+tar_pred = extract_tar_from_pnml("birthCertificate_p248.pnml")
+
+precision, recall, fscore = precision_recall_fscore(tar_true, tar_pred)
+
+print(f"🎯 Precision: {precision:.3f}")
+print(f"📈 Recall:    {recall:.3f}")
+print(f"⭐ F-score:   {fscore:.3f}")
