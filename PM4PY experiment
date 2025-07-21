@@ -1,0 +1,42 @@
+from pm4py.objects.petri_net.importer import importer as pnml_importer
+from pm4py.simulation.playout import simulator
+from pm4py.algo.conformance.alignments.petri_net import algorithm as alignments
+from pm4py.algo.evaluation.precision import algorithm as precision_evaluator
+from pm4py.algo.evaluation.generalization import algorithm as generalization_evaluator
+from pm4py.algo.evaluation.simplicity import algorithm as simplicity_evaluator
+
+# Carica i modelli
+net_a, im_a, fm_a = pnml_importer.apply("birthCertificate_p31.pnml")
+net_b, im_b, fm_b = pnml_importer.apply("birthCertificate_p32.pnml")
+
+# Stampa transizioni visibili
+print("Transizioni modello A:", [t.label for t in net_a.transitions if t.label])
+print("Transizioni modello B:", [t.label for t in net_b.transitions if t.label])
+
+# Simula log da modello A
+simulated_log = simulator.apply(
+    net_a,
+    im_a,
+    variant=simulator.Variants.BASIC_PLAYOUT,
+    parameters={"max_trace_length": 15, "no_traces": 30}
+)
+
+print(f"Numero tracce simulate: {len(simulated_log)}")
+
+# Calcolo fitness per ogni traccia rispetto al modello B
+results = alignments.apply(simulated_log, net_b, im_b, fm_b)
+
+for i, res in enumerate(results):
+    print(f"Trace {i} fitness vs modello B: {res['fitness']}")
+
+# Calcolo precisione rispetto al modello B
+precision = precision_evaluator.apply(simulated_log, net_b, im_b, fm_b)
+print("Precision rispetto al modello B:", precision)
+
+# Calcolo generalizzazione rispetto al modello B
+generalization = generalization_evaluator.apply(simulated_log, net_b, im_b, fm_b)
+print("Generalization rispetto al modello B:", generalization)
+
+# Calcolo semplicità del modello B
+simplicity = simplicity_evaluator.apply(net_b)
+print("Simplicity del modello B:", simplicity)
